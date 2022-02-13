@@ -14,7 +14,6 @@ st.write('''
 FBref data from the 2017-2018 season to 2020-2021 season across the top 5 european leagues.
 ''')
 
-os.chdir('D:\Desktop\Programming\GitHub\msg\Portfolio\Soccer - FBref Top 5 App')
 os.chdir('./data/Finalizer')
 
 @st.cache(allow_output_mutation=True)
