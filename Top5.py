@@ -19,12 +19,12 @@ os.chdir('./data/Finalizer')
 @st.cache(allow_output_mutation=True)
 def excelreader():  # show_spinner=False
     df_raw = pd.read_csv('Top 5 Leagues Raw Player Stats All Time.csv')
-    #df_raw.drop(['Unnamed: 0'], axis=1, inplace=True)
+    df_raw.drop(['Unnamed: 0'], axis=1, inplace=True)
     df_raw.fillna(0, inplace=True)
     df_raw.set_index('Player_ID_Full', inplace = True)
     df_raw = df_raw.select_dtypes(include=[np.number])
     df_PAdj = pd.read_csv('Top 5 Leagues PAdj Player Stats All Time.csv')
-    #df_PAdj.drop(['Unnamed: 0'], axis=1, inplace=True)
+    df_PAdj.drop(['Unnamed: 0'], axis=1, inplace=True)
     df_PAdj.fillna(0, inplace=True)
     df_PAdj.set_index('Player_ID_Full', inplace = True)
     df_PAdj = df_PAdj.select_dtypes(include=[np.number])
@@ -32,7 +32,6 @@ def excelreader():  # show_spinner=False
 
 df_raw, df_PAdj = excelreader()
 os.chdir('../../')
-
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Per 90 Stat Leaders
 st.write('''
@@ -53,16 +52,26 @@ def statleaders(selection1):
     min_slider = st.slider('Minutes Played', min_value=400, max_value=int(df['Minutes Played'].max()), value=400, step=90, key="<slider1a>")
     df = df[df['Minutes Played'] >= min_slider]
     df['Player'] = df.index.str.split('_').str[0]
+    df['Position'] = df.index.str.split('_').str[2]
     df['Team'] = df.index.str.split('_').str[3]
     df['Season'] = df.index.str.split('_').str[6]
-    leaders = df[['Player','Team', 'Season', col]]
-    leaders.sort_values(by=col, ascending=False, inplace=True)
-    return(leaders)
+    container0 = st.container()
+    all0 = st.checkbox("Select/Deselect all", key="<checkbox0>")
+    if all0:
+        Pos = container0.multiselect("Select Positions:", sorted(list(set(df['Position']))), sorted(list(set(df['Position']))), key = '<multiselect0a')
+    else:
+        Pos = container0.multiselect("Select Positions:",sorted(list(set(df['Position']))), key = '<multiselect0b')
+    if len(Pos) == 0:
+        st.markdown(f'<h1 style="color:#ff5454;font-size:18px;">{"Error: Please select a position or multiple positions."}</h1>', unsafe_allow_html=True)
+    elif len(Pos) > 0:
+        df = df[df['Position'].isin(Pos)]
+        leaders = df[['Player','Team', 'Season', col, 'Minutes Played']]
+        leaders.sort_values(by=col, ascending=False, inplace=True)
+        leaders.reset_index(drop=True, inplace=True)
+        leaders.index = leaders.index + 1
+        st.dataframe(leaders.head(10), height=350, width = 1000)
 
 leaders = (statleaders(selection1))
-leaders.reset_index(drop=True, inplace=True)
-leaders.index = leaders.index + 1
-st.dataframe(leaders.head(10), height=350)
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Scatter Charts
 st.write('''
@@ -111,9 +120,9 @@ container1 = st.container()
 
 all1 = st.checkbox("Select/Deselect all", key="<checkbox2>")
 if all1:
-    Pos = container1.multiselect("Select Positions:", sorted(list(set(dfscatter['Position']))), sorted(list(set(dfscatter['Position']))))
+    Pos = container1.multiselect("Select Positions:", sorted(list(set(dfscatter['Position']))), sorted(list(set(dfscatter['Position']))), key='<multiselect1a')
 else:
-    Pos = container1.multiselect("Select Positions:",sorted(list(set(dfscatter['Position']))))
+    Pos = container1.multiselect("Select Positions:", sorted(list(set(dfscatter['Position']))), key='<multiselect1b')
 
 if len(Pos) > 0:
     def Scatter2D(xvar, yvar):
@@ -131,7 +140,7 @@ if len(Pos) > 0:
             Team = container2.multiselect("Select Teams:", sorted(
                 list(set(dfsel['Team']))), sorted(list(set(dfsel['Team']))))
         else:
-            Team = container2.multiselect("Select Teams:", sorted(list(set(dfsel['Team']))))
+            Team = container2.multiselect("Select Teams:", sorted(list(set(dfsel['Team']))), key='<multiselect2a')
                                                         
         if Team == None:
             dfsel = dfsel.copy()
@@ -226,7 +235,7 @@ def HeadtoHead():
         dfPlayers = dfPlayers.T
 
         # Select template with st.selectionbox - Offensive, Passing, Scoring, etc... assign return to template then dfPlayers[template]
-        metrics = st.multiselect("Select Metrics:", sorted(dfPlayers.columns))
+        metrics = st.multiselect("Select Metrics:", sorted(dfPlayers.columns), key='<multiselect3a')
         if len(metrics) == 0:
             st.markdown(f'<h1 style="color:#ff5454;font-size:18px;">{"Error: Please select a metric or multiple metrics."}</h1>', unsafe_allow_html=True)
         elif len(metrics) > 0:
