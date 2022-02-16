@@ -1,3 +1,3 @@
 # Top5
-Top 5 App
+Top5 Web App
 https://msuatgunerli-top5.herokuapp.com
