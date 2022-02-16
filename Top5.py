@@ -15,7 +15,7 @@ import os
 st.set_page_config(layout= "wide")
 
 st.write('''
-# MSG
+# Top5 Web App @msuatgunerli
 FBref data from the 2017-2018 season to 2020-2021 season across the top 5 european leagues.
 ''')
 os.chdir('./data/Finalizer')
@@ -196,7 +196,7 @@ if len(Pos) > 0:
                 #     fig.add_vline(np.mean(dfsel[xvar]), opacity=1, line_color='black', line_width = 2.5)
                 # if is_numeric_dtype(dfsel[yvar]):
                 #     fig.add_hline(np.mean(dfsel[yvar]), opacity=1, line_color='black', line_width = 2.5)
-                
+                fig.update_layout(width=1600, height=900)
                 st.plotly_chart(fig)
             
             except:
@@ -370,6 +370,7 @@ def HeadtoHead():
             dfPlayers = dfPlayers[metrics]
             dfPlayers = dfPlayers.T
             dfPlayers_actual = dfPlayers.copy()
+            dfPlayers_actual = dfPlayers_actual.round(decimals = 2)
 
             from plotly.subplots import make_subplots
             import plotly.graph_objects as go
@@ -446,12 +447,16 @@ def PCADep():
     st.write('Displaying ' + str(len(PCvalues)) + ' Players')
     fig = px.scatter(PCvalues, x='PC1', y='PC2', color="Position",
                      color_discrete_sequence=px.colors.qualitative.Set1, hover_data=['Player', 'Team', 'Season'])
-    fig.update_layout(template='plotly_dark', title=dict(text=('PC2' + ' vs. ' + 'PC1'), font=dict(size=22), yanchor='top', xanchor='center', y=0.975, x=0.5),
+    fig.update_layout(template='plotly_dark', title=dict(text=('PC2' + ' vs. ' + 'PC1'), font=dict(size=22), yanchor='top', xanchor='center', y=1, x=0.5),
                       xaxis_title=('PC1'), yaxis_title=('PC2'))
     fig.update_layout(autosize=False, width=1000, height=800, legend=dict(
-        orientation="h", yanchor='top', xanchor='center', y=1.035, x=0.5))
+        orientation="h", yanchor='top', xanchor='center', y=1.05, x=0.5))
     fig.layout.xaxis.tickformat = '.2f'
     fig.layout.yaxis.tickformat = '.2f'
+    fig.update_layout(dict(updatemenus=[dict(type="buttons", direction="left", buttons=list([dict(args=["visible", "legendonly"],
+                                                                                                  label="Deselect All", method="restyle"), dict(args=["visible", True], label="Select All", method="restyle")]),
+                                             pad={"r": 0, "t": 0}, showactive=False, x=1, xanchor="right", y=1, yanchor="top"), ]))
+    fig.update_layout(width=1600, height=900)
     st.plotly_chart(fig)
     return(PCvalues)
 
@@ -481,9 +486,13 @@ def PCAIndep():
     fig.update_layout(template='plotly_dark', title=dict(text=('PC2' + ' vs. ' + 'PC1'), font=dict(size=22), yanchor='top', xanchor='center', y=0.975, x=0.5),
                       xaxis_title=('PC1'), yaxis_title=('PC2'))
     fig.update_layout(autosize=False, width=1000, height=800, legend=dict(
-        orientation="h", yanchor='top', xanchor='center', y=1.035, x=0.5))
+        orientation="h", yanchor='top', xanchor='center', y=1.05, x=0.5))
     fig.layout.xaxis.tickformat = '.2f'
     fig.layout.yaxis.tickformat = '.2f'
+    fig.update_layout(dict(updatemenus=[dict(type="buttons", direction="left", buttons=list([dict(args=["visible", "legendonly"],
+                                                                                                  label="Deselect All", method="restyle"), dict(args=["visible", True], label="Select All", method="restyle")]),
+                                             pad={"r": 0, "t": 0}, showactive=False, x=1, xanchor="right", y=1, yanchor="top"), ]))
+    fig.update_layout(width=1600, height=900)
     st.plotly_chart(fig)
     return(PCvalues)
 
@@ -616,10 +625,11 @@ fig2 = px.scatter(df_comparison[df_comparison.index == similarity_player_ID], x=
 fig2.update_traces(marker=dict(size=10, color='green'))
 fig3 = px.scatter(df_comparison[df_comparison.index != similarity_player_ID], x='PC1', y='PC2', color_discrete_sequence=['red'], hover_data=['Position','Player', 'Team','Season'], opacity = 1)
 fig4 = go.Figure(data=fig1.data + fig3.data + fig2.data)
-fig4.update_layout(template='plotly_dark', title=dict(text=('PC2' + ' vs. ' + 'PC1'), font=dict(size=22), yanchor='top', xanchor='center', y=0.975, x=0.5),
+fig4.update_layout(template='plotly_dark', title=dict(text=('PC2' + ' vs. ' + 'PC1'), font=dict(size=22), yanchor='top', xanchor='center', y=0.925, x=0.5),
                   xaxis_title=('PC1'), yaxis_title=('PC2'))
-fig4.update_layout(autosize=False, width=1000, height=800, legend=dict(orientation="h", yanchor='top', xanchor='center', y=1.035, x= 0.5))
+#fig4.update_layout(autosize=False, width=1000, height=800, legend=dict(orientation="h", yanchor='top', xanchor='center', y=1, x= 0.5))
 fig4.layout.xaxis.tickformat = '.2f'
 fig4.layout.yaxis.tickformat = '.2f'
+fig4.update_layout(width=1600, height=900)
 st.plotly_chart(fig4)
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
