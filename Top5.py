@@ -633,10 +633,10 @@ fig4.layout.yaxis.tickformat = '.2f'
 fig4.update_layout(width=1600, height=900)
 st.plotly_chart(fig4)
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# Player Role Predictor
+# Player Position Predictor
 st.write('''
-## Player Role Predictor
-Predicts the role of a selected player using EPL 2020-2021 player position data from transfermarkt.
+## Player Position Predictor
+Predicts the position of a selected player using samples of Premier League 2020-2021 player position data from transfermarkt.
 ''')
 
 @st.cache(allow_output_mutation=True)
