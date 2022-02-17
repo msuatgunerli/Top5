@@ -633,3 +633,94 @@ fig4.layout.yaxis.tickformat = '.2f'
 fig4.update_layout(width=1600, height=900)
 st.plotly_chart(fig4)
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Player Role Predictor
+st.write('''
+## Player Role Predictor
+Predicts the role of a selected player using EPL 2020-2021 player position data from transfermarkt.
+''')
+
+@st.cache(allow_output_mutation=True)
+def playerroletable():  # show_spinner=False
+    os.chdir('./data/Finalizer')
+    df = pd.read_csv('playerroles.csv')
+    df.set_index('Player_ID_Full', inplace=True)
+    os.chdir('../../')
+    return df
+
+df_PlayerRoles = playerroletable()
+
+selection7a = st.selectbox('Raw or Possession-Adjusted Stats (use PAdj on non-percentage defensive metrics only)',
+                         ['Raw', 'Possession Adjusted'], key='<selectbox7a>')
+if selection7a == 'Raw':
+    df = df_raw.copy()
+elif selection7a == 'Possession Adjusted':
+    df = df_PAdj.copy()
+
+def rolepredictor(df_PlayerRoles, df):
+    selection7b = st.selectbox('Attribute Scaling',['Scale Across Top 5 Leagues', 'Scale Leagues Independently'], key='<selectbox7b>')
+    if selection7b == 'Scale Across Top 5 Leagues':
+        df = df
+        scaler = MinMaxScaler()
+        df = pd.DataFrame(scaler.fit_transform(df), index=df.index, columns=df.columns)
+    elif selection7b == 'Scale Leagues Independently':
+        df = df
+        df['Competition'] = df.index.str.split('_').str[4]
+        leaguedict = {'Premier League': 0, 'La Liga': 0.25,
+                    'Bundesliga': 0.5, 'Serie A': 0.75, 'Ligue 1': 1}
+        df = df.replace({"Competition": leaguedict})
+        df = df.groupby('Competition').transform(lambda x: minmax_scale(x.astype(float)))
+
+    df_roles = df.join(df_PlayerRoles)
+    df_catcodes = df_roles.copy()
+    df_catcodes['Category'] = df_catcodes['Role'].astype('category').cat.codes
+    cat_list = dict(zip(df_catcodes['Category'], df_catcodes['Role']))
+    df_catcodes['Role'] = df_catcodes['Category']
+    df_catcodes.drop(['Category'], axis = 1, inplace = True)
+    # corr_matrix = df_catcodes.corr()
+    # corr_matrix['Role'].sort_values(ascending=False)
+    X_train = df_catcodes[df_catcodes['Role'] != -1].iloc[:, :-1].values
+    X_test = df_catcodes[df_catcodes['Role'] == -1].iloc[:, :-1].values
+
+    y_train = df_catcodes[df_catcodes['Role'] != -1].iloc[:, -1].values
+    y_test = df_catcodes[df_catcodes['Role'] == -1].iloc[:, -1].values
+
+    selection7c = st.selectbox('Prediction Algorithm',
+                         ['Stochastic Gradient Descent', 'Logistic Regression'], key='<selectbox7c>')
+
+    if selection7c == 'Stochastic Gradient Descent':
+        from sklearn.linear_model import SGDClassifier
+        sgd_clf = SGDClassifier(max_iter=100000, tol=1e-5, random_state=42, class_weight='balanced', loss="perceptron")
+        sgd_clf.fit(X_train, y_train)
+        #sgd_clf.score(X_train, y_train)
+        y_pred_sgd = sgd_clf.predict(X_test)
+        predictions = df_catcodes[df_catcodes['Role'] == -1].iloc[:, :-1] # filters for rows with empty roles
+        predictions['Predicted Position'] = y_pred_sgd.tolist()
+        predictions['Predicted Position'] = predictions['Predicted Position'].map(lambda x: cat_list[x])
+        predictions = predictions['Predicted Position']
+
+    elif selection7c == 'Logistic Regression':
+        from sklearn.linear_model import LogisticRegression
+        log_reg = LogisticRegression(solver = 'lbfgs', max_iter=100000, tol=1e-5, random_state=42, penalty='l2')
+        log_reg.fit(X_train, y_train)
+        #log_reg.score(X_train, y_train)
+        y_pred_reg = log_reg.predict(X_test)
+        predictions = df_catcodes[df_catcodes['Role'] == -1].iloc[:, :-1] # filters for rows with empty roles
+        predictions['Predicted Position'] = y_pred_reg.tolist()
+        predictions['Predicted Position'] = predictions['Predicted Position'].map(lambda x: cat_list[x])
+        predictions = predictions['Predicted Position']
+    return(predictions)
+
+omitted_players = df_PlayerRoles.copy()
+omitted_players.rename(columns={omitted_players.columns[0]: "Predicted Position" }, inplace = True)
+predictions = pd.DataFrame(rolepredictor(df_PlayerRoles, df))
+predictions = pd.concat([predictions, omitted_players])
+
+Selector = (predictions.index.str.split('_').str[0]) + ', ' + (predictions.index.str.split(
+    '_').str[2]) + ', ' + (predictions.index.str.split('_').str[6]) + ', ' + (predictions.index.str.split('_').str[3])
+predictions.insert(loc=0, column='Player', value=Selector)
+
+predictions_player = st.selectbox('Select Player', sorted(predictions.Player), key='<predictionsselector1>')
+predictions_role = predictions[predictions['Player'] == predictions_player]
+predictions_role.reset_index(drop = True, inplace = True)
+predictions_role.index = predictions_role.index + 1
+st.write(predictions_role)
