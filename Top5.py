@@ -220,10 +220,10 @@ elif len(Pos) == 0:
     st.markdown(f'<h1 style="color:#ff5454;font-size:18px;">{"Error: Please select a position or multiple positions."}</h1>', unsafe_allow_html=True)
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# Player Percentile Ranks
+# Player Percentile Rank
 st.markdown("""---""")
 st.write('''
-## 3. Player Percentile Ranks
+## 3. Player Percentile Rank
 ##### __*Displays the Best and Worst Attributes of a Player*__
 ''')
 st.text(" \n")
@@ -235,22 +235,41 @@ if selection4 == 'Raw':
 elif selection4 == 'Possession-Adjusted':
     df4 = df_PAdj.copy()
 
-df4['Position'] = df4.index.str.split('_').str[2]
+min_slider = st.slider('Minutes Played:', min_value=400, max_value=int(df4['Minutes Played'].max()), value=400, step=50, key="<slider30a>")
+df4 = df4[df4['Minutes Played'] >= min_slider]
 
-container4 = st.container()
-all4 = st.checkbox("Select/Deselect All", key="<checkbox4>")
-if all4:
-    Pos = container4.multiselect("Select Positions:", sorted(list(set(df4['Position']))), sorted(list(set(df4['Position']))), key = '<multiselect4a')
+df4['Season'] = df4.index.str.split('_').str[6]
+container33 = st.container()
+all33 = st.checkbox("Select/Deselect All", key="<checkbox33a>")
+if all33:
+    Season = container33.multiselect("Select Seasons:", sorted(list(set(
+        df4['Season']))), sorted(list(set(df4['Season']))), key='<multiselect33a')
 else:
-    Pos = container4.multiselect("Select Positions:",sorted(list(set(df4['Position']))), key = '<multiselect4b')
+    Season = container33.multiselect("Select Seasons:", sorted(
+        list(set(df4['Season']))), key='<multiselect33b')
+if Season == None:
+    st.markdown(f'<h1 style="color:#ff5454;font-size:18px;">{"Error: Please select a season or multiple seasons."}</h1>', unsafe_allow_html=True)
+elif len(Season) > 0:
+    df4 = df4.copy()
+    df4 = df4[df4['Season'].isin(Season)]
+    df4.drop(['Season'], axis = 1, inplace = True)
 
-if len(Pos) == 0:
-    st.markdown(f'<h1 style="color:#ff5454;font-size:18px;">{"Error: Please select a position or multiple positions."}</h1>', unsafe_allow_html=True)
-    df4 = df4[df4['Position'].isin(Pos)]
-elif len(Pos) > 0:
-    df4 = df4[df4['Position'].isin(Pos)]
+    df4['Position'] = df4.index.str.split('_').str[2]
 
-df4.drop(['Position'], axis = 1, inplace = True)
+    container4 = st.container()
+    all4 = st.checkbox("Select/Deselect All", key="<checkbox4>")
+    if all4:
+        Pos = container4.multiselect("Select Positions:", sorted(list(set(df4['Position']))), sorted(list(set(df4['Position']))), key = '<multiselect4a')
+    else:
+        Pos = container4.multiselect("Select Positions:",sorted(list(set(df4['Position']))), key = '<multiselect4b')
+
+    if len(Pos) == 0:
+        st.markdown(f'<h1 style="color:#ff5454;font-size:18px;">{"Error: Please select a position or multiple positions."}</h1>', unsafe_allow_html=True)
+        df4 = df4[df4['Position'].isin(Pos)]
+    elif len(Pos) > 0:
+        df4 = df4[df4['Position'].isin(Pos)]
+
+    df4.drop(['Position'], axis = 1, inplace = True)
 
 def PPR(df4, Pos):
     if len(Pos) == 0:
@@ -334,10 +353,116 @@ except:
     st.write('')
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 st.markdown("""---""")
+st.write('''
+## 4. PPR Bins
+##### __*Displays PPR Using a Histogram*__
+''')
+st.text(" \n")
+def PPRbins():
+    selection41 = st.selectbox('Raw or Possession-Adjusted Stats (Use P-Adj on Non-Percentage Defensive Metrics Only):',
+                         ['Raw', 'Possession-Adjusted'], key='<selectbox41a>')
+    if selection41 == 'Raw':
+        df = df_raw.copy()
+    elif selection4 == 'Possession-Adjusted':
+        df = df_PAdj.copy()
+
+    min_slider = st.slider('Minutes Played:', min_value=400, max_value=int(df['Minutes Played'].max()), value=400, step=50, key="<slider40a>")
+    df = df[df['Minutes Played'] >= min_slider]
+
+    selection41c = st.selectbox("Select a Metric:", sorted(df.columns), key='<selectbox41c')
+    df = pd.DataFrame(df[selection41c])
+
+    df['Season'] = df.index.str.split('_').str[6]
+    container53 = st.container()
+    all53 = st.checkbox("Select/Deselect All", key="<checkbox53a>")
+    if all53:
+        Season = container53.multiselect("Select Seasons:", sorted(list(set(
+            df['Season']))), sorted(list(set(df['Season']))), key='<multiselect53a')
+    else:
+        Season = container53.multiselect("Select Seasons:", sorted(
+            list(set(df['Season']))), key='<multiselect53b')
+    if Season == None:
+        st.markdown(f'<h1 style="color:#ff5454;font-size:18px;">{"Error: Please select a season or multiple seasons."}</h1>', unsafe_allow_html=True)
+    elif len(Season) > 0:
+        df = df.copy()
+        df = df[df['Season'].isin(Season)]
+        df.drop(['Season'], axis = 1, inplace = True)
+
+        df['Position'] = df.index.str.split('_').str[2]
+        container51 = st.container()
+        all51 = st.checkbox("Select/Deselect All", key="<checkbox51>")
+        if all51:
+            Pos = container51.multiselect("Select Positions:", sorted(list(set(df['Position']))), sorted(list(set(df['Position']))), key = '<multiselect51a')
+        else:
+            Pos = container51.multiselect("Select Positions:", sorted(
+                list(set(df['Position']))), key='<multiselect51b')
+
+        if len(Pos) == 0:
+            st.markdown(f'<h1 style="color:#ff5454;font-size:18px;">{"Error: Please select a position or multiple positions."}</h1>', unsafe_allow_html=True)
+        elif len(Pos) > 0:
+            df = df[df['Position'].isin(Pos)]
+            df.drop(['Position'], axis=1, inplace=True)
+
+            selection42b = st.selectbox('Attribute Scaling:',['Scale Across Top 5 Leagues', 'Scale Leagues Independently'], key='<selectbox42b>')
+            if selection42b == 'Scale Across Top 5 Leagues':
+                dfcomp = df
+                scaler = MinMaxScaler()
+                dfcomp_scaled = pd.DataFrame(scaler.fit_transform(dfcomp), index=dfcomp.index, columns=dfcomp.columns)
+                dfcomp_scaled.rename(columns={dfcomp_scaled.columns[0]: "Scaled Attribute" }, inplace = True)
+                dfcomp = pd.concat([df, dfcomp_scaled], axis=1)
+
+            elif selection42b == 'Scale Leagues Independently':
+                dfcomp = df
+                dfcomp['Competition'] = dfcomp.index.str.split('_').str[4]
+                leaguedict = {'Premier League': 0, 'La Liga': 0.25,'Bundesliga': 0.5, 'Serie A': 0.75, 'Ligue 1': 1}
+                dfcomp = dfcomp.replace({"Competition": leaguedict})
+                dfcomp_scaled = dfcomp.groupby('Competition').transform(lambda x: minmax_scale(x.astype(float)))
+                dfcomp_scaled.rename(columns={dfcomp_scaled.columns[0]: "Scaled Attribute" }, inplace = True)
+                dfcomp = pd.concat([df, dfcomp_scaled], axis=1)
+                dfcomp.drop(['Competition'], axis = 1, inplace = True)
+
+            dfcomp['Selector'] = (dfcomp.index.str.split('_').str[0]) + ', ' + (dfcomp.index.str.split('_').str[2]) + ', ' + (dfcomp.index.str.split('_').str[6]) + ', ' + (dfcomp.index.str.split('_').str[3])
+            similarity_player = st.selectbox('Select a Player:', sorted(dfcomp.Selector), key='<dfcomp52>')
+            df_similarity_player = dfcomp[dfcomp['Selector'] == similarity_player]
+            fig = px.histogram(dfcomp, x="Scaled Attribute", color_discrete_sequence = ['white'], opacity= 0.5)
+            Title1 = str(df_similarity_player['Selector'][0])
+            Title2 = str(df_similarity_player.columns[0]) + ': ' + str(df_similarity_player.iloc[0].values[0]) + '  PPR: ' + str(round(int(100000*(df_similarity_player.iloc[0,1]))/1000,2)) + '%'
+            fig.update_layout(template='plotly_dark',
+                            title=f'<b>{Title1}<b><br><sup><b>{Title2}<b></sup>')
+            fig.update_layout(autosize=False, width=1600, height=900, hovermode=False)
+            fig.update_traces(xbins=dict(start= 0.0001,size=0.02)) # -0.0019
+            fig.update_xaxes(range=[0, 1.0001])
+            fig.update_xaxes(title = dfcomp.columns[0])
+            
+            rounded = int(100 *round(df_similarity_player['Scaled Attribute'][0],2))
+            if rounded % 2 == 0:
+                rounded = rounded / 100 + 0.0101
+            elif rounded % 2 != 0:
+                rounded = rounded / 100 + 0.0001
+            if rounded >= 0.995:
+                rounded = rounded - 0.02
+            
+            fig.add_vline(x=rounded, y0=0, y1=1,
+                        line_color='#FF4B4B', line_width=2.5)
+            #fig.add_trace(go.Scatter(x=[rounded], mode = 'text', y=[1], text=[round(dfcomp_scaled.iloc[0].values[0], 2)], textposition="top center"))
+            fig.update_yaxes(visible=False, showticklabels=False)
+            fig.update_layout(font_family="Courier New",font_color="white",title_font_family="Courier New",title_font_color="white",title_font_size = 28,legend_title_font_color="white", legend_title_font_size = 18,
+                    legend_font_size = 16)
+            fig.update_layout(yaxis = dict(tickfont = dict(size=16), titlefont = dict(size=22)))
+            fig.update_layout(xaxis = dict(tickfont = dict(size=16), titlefont = dict(size=22)))
+            #f = fig.full_figure_for_development(warn   =False) st.write(f.data[0].xbins) #Kaleido
+            fig.update_layout(uniformtext_minsize=44, uniformtext_mode='hide')
+            st.plotly_chart(fig)
+
+PPRbins()
+st.text(" \n")
+st.text(" \n")
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+st.markdown("""---""")
 # Head-to-Head
 st.write('''
-## 4. Head-to-Head
-##### __*Compares the Two Selected Players Using Bar Charts*__
+## 5. Head-to-Head
+##### __*Displays a Player's Output for a Selected Metric Using a Histogram*__
 ''')
 st.text(" \n")
 def HeadtoHead():
@@ -477,7 +602,7 @@ HeadtoHead()
 # PCA
 st.markdown("""---""")
 st.write('''
-## 5. PCA
+## 6. PCA
 ##### __*Visualization of High-Dimensional Data Using Principal Component Analysis*__
 ''')
 st.text(" \n")
@@ -586,7 +711,7 @@ elif selection6b == 'Scale Leagues Independently':
 # KNN Scaled Across Top 5 Leagues
 st.markdown("""---""")
 st.write('''
-## 6. Nearest Neighbors
+## 7. Nearest Neighbors
 ##### __*Finding Similar Players Using Cosine and Euclidean Similarity*__
 ''')
 st.text(" \n")
@@ -776,7 +901,7 @@ st.text(" \n")
 # Player Position Predictor
 st.markdown("""---""")
 st.write('''
-## 7. Player Position Predictor
+## 8. Player Position Predictor
 ##### __*Predicts the Position of a Selected Player Using Premier League 2020-2021 Player Position Data from Transfermarkt*__
 ''')
 st.text(" \n")
@@ -884,6 +1009,6 @@ st.markdown("""---""")
 st.markdown('''
             Mehmet Suat Gunerli \n
             Top5 Web App \n
-            February 17, 2022
+            February 19, 2022
             ''')
 st.markdown("""---""")
